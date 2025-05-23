@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enviar Notificación - Sistema de Registro de Patentes</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/forms.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-container">
+                <div class="header-left">
+                    <a href="dashboard.html" class="logo">Sistema de Patentes</a>
+                    <nav class="main-nav">
+                        <a href="dashboard.html" class="nav-item">
+                            <i class="fas fa-file-alt"></i> Panel
+                        </a>
+                        <a href="registrar.html" class="nav-item">
+                            <i class="fas fa-car"></i> Registrar Patente
+                        </a>
+                        <a href="accidentes.html" class="nav-item">
+                            <i class="fas fa-file-alt"></i> Registrar Accidente
+                        </a>
+                        <a href="notificaciones.html" class="nav-item active">
+                            <i class="fas fa-bell"></i> Notificaciones
+                        </a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="dropdown">
+                        <button class="dropdown-button">
+                            <i class="fas fa-user"></i>
+                            <span id="userName">Administrador</span>
+                        </button>
+                        <div class="dropdown-content">
+                            <span id="userEmail" class="dropdown-item disabled">admin@sistema.com</span>
+                            <a href="#" id="logoutButton" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <h1>Enviar Notificación</h1>
+            
+            <div class="card">
+                <div class="card-content">
+                    <form id="notificationForm">
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label>Buscar Vehículo con Accidente</label>
+                                <div class="form-row">
+                                    <div class="search-input-container flex-grow">
+                                        <i class="fas fa-search"></i>
+                                        <input 
+                                            type="search" 
+                                            id="searchVehicleInput" 
+                                            placeholder="Ingrese la patente..."
+                                        >
+                                    </div>
+                                    <button type="button" id="searchVehicleBtn" class="button">
+                                        Buscar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div id="searchResults" class="search-results hidden">
+                                <!-- Resultados de búsqueda se mostrarán aquí -->
+                            </div>
+
+                            <div id="selectedVehicle" class="selected-vehicle hidden">
+                                <p>Vehículo seleccionado: <strong id="selectedLicensePlate"></strong></p>
+                            </div>
+
+                            <input type="hidden" id="vehicleId" name="vehicleId">
+                            <input type="hidden" id="licensePlate" name="licensePlate">
+
+                            <div class="form-group">
+                                <label for="recipient">Destinatario *</label>
+                                <input 
+                                    id="recipient" 
+                                    name="recipient" 
+                                    placeholder="Nombre del destinatario" 
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="method">Método de Notificación *</label>
+                                    <select id="method" name="method" required>
+                                        <option value="email" selected>Email</option>
+                                        <option value="sms">SMS</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactInfo" id="contactInfoLabel">Correo Electrónico *</label>
+                                    <input 
+                                        id="contactInfo" 
+                                        name="contactInfo" 
+                                        type="email" 
+                                        placeholder="correo@ejemplo.com" 
+                                        required
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="subject">Asunto *</label>
+                                <input 
+                                    id="subject" 
+                                    name="subject" 
+                                    placeholder="Asunto de la notificación" 
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="message">Mensaje *</label>
+                                <textarea 
+                                    id="message" 
+                                    name="message" 
+                                    placeholder="Contenido de la notificación" 
+                                    rows="6" 
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div class="form-checkbox">
+                                <input 
+                                    type="checkbox" 
+                                    id="attachReport" 
+                                    name="attachReport"
+                                >
+                                <label for="attachReport">Adjuntar informe del accidente</label>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="button button-outline" onclick="window.location.href='dashboard.html'">
+                                Cancelar
+                            </button>
+                            <button type="submit" id="submitNotificationBtn" class="button button-primary" disabled>
+                                Enviar Notificación
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <h3 id="toastTitle"></h3>
+            <p id="toastMessage"></p>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/notification.js"></script>
+</body>
+</html>

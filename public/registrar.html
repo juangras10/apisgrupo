@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Patente - Sistema de Registro de Patentes</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/forms.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-container">
+                <div class="header-left">
+                    <a href="dashboard.html" class="logo">Sistema de Patentes</a>
+                    <nav class="main-nav">
+                        <a href="dashboard.html" class="nav-item">
+                            <i class="fas fa-file-alt"></i> Panel
+                        </a>
+                        <a href="registrar.html" class="nav-item active">
+                            <i class="fas fa-car"></i> Registrar Patente
+                        </a>
+                        <a href="accidentes.html" class="nav-item">
+                            <i class="fas fa-file-alt"></i> Registrar Accidente
+                        </a>
+                        <a href="notificaciones.html" class="nav-item">
+                            <i class="fas fa-bell"></i> Notificaciones
+                        </a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="dropdown">
+                        <button class="dropdown-button">
+                            <i class="fas fa-user"></i>
+                            <span id="userName">Administrador</span>
+                        </button>
+                        <div class="dropdown-content">
+                            <span id="userEmail" class="dropdown-item disabled">admin@sistema.com</span>
+                            <a href="#" id="logoutButton" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <h1>Registrar Patente</h1>
+            
+            <div class="card">
+                <div class="card-content">
+                    <form id="vehicleForm">
+                        <div class="form-section">
+                            <div class="form-row">
+                                <div class="form-group flex-grow">
+                                    <label for="licensePlate">Patente *</label>
+                                    <input 
+                                        id="licensePlate" 
+                                        name="licensePlate" 
+                                        placeholder="Ej: ABC123" 
+                                        required
+                                    >
+                                </div>
+                                <div>
+                                    <button type="button" id="searchLicensePlateBtn" class="button button-outline">
+                                        Buscar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="make">Marca *</label>
+                                    <input 
+                                        id="make" 
+                                        name="make" 
+                                        placeholder="Ej: Toyota" 
+                                        required
+                                    >
+                                </div>
+                                <div class="form-group">
+                                    <label for="model">Modelo *</label>
+                                    <input 
+                                        id="model" 
+                                        name="model" 
+                                        placeholder="Ej: Corolla" 
+                                        required
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="year">Año *</label>
+                                    <input 
+                                        id="year" 
+                                        name="year" 
+                                        placeholder="Ej: 2020" 
+                                        required
+                                    >
+                                </div>
+                                <div class="form-group">
+                                    <label for="color">Color</label>
+                                    <input 
+                                        id="color" 
+                                        name="color" 
+                                        placeholder="Ej: Blanco"
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="owner">Propietario *</label>
+                                <input 
+                                    id="owner" 
+                                    name="owner" 
+                                    placeholder="Nombre completo" 
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="identificationNumber">Número de Identificación *</label>
+                                <input 
+                                    id="identificationNumber" 
+                                    name="identificationNumber" 
+                                    placeholder="RUT o documento de identidad" 
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="contactEmail">Correo Electrónico</label>
+                                    <input 
+                                        id="contactEmail" 
+                                        name="contactEmail" 
+                                        type="email" 
+                                        placeholder="correo@ejemplo.com"
+                                    >
+                                </div>
+                                <div class="form-group">
+                                    <label for="contactPhone">Teléfono</label>
+                                    <input 
+                                        id="contactPhone" 
+                                        name="contactPhone" 
+                                        placeholder="+56 9 1234 5678"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="button button-outline" onclick="window.location.href='dashboard.html'">
+                                Cancelar
+                            </button>
+                            <button type="submit" id="submitVehicleBtn" class="button button-primary">
+                                Registrar Vehículo
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <h3 id="toastTitle"></h3>
+            <p id="toastMessage"></p>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/vehicle-registration.js"></script>
+</body>
+</html>

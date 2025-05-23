@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Sistema de Registro de Patentes</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="header">
+            <div class="header-container">
+                <div class="header-left">
+                    <a href="dashboard.html" class="logo">Sistema de Patentes</a>
+                    <nav class="main-nav">
+                        <a href="dashboard.html" class="nav-item active">
+                            <i class="fas fa-file-alt"></i> Panel
+                        </a>
+                        <a href="registrar.html" class="nav-item">
+                            <i class="fas fa-car"></i> Registrar Patente
+                        </a>
+                        <a href="accidentes.html" class="nav-item">
+                            <i class="fas fa-file-alt"></i> Registrar Accidente
+                        </a>
+                        <a href="notificaciones.html" class="nav-item">
+                            <i class="fas fa-bell"></i> Notificaciones
+                        </a>
+                    </nav>
+                </div>
+                <div class="header-right">
+                    <div class="dropdown">
+                        <button class="dropdown-button">
+                            <i class="fas fa-user"></i>
+                            <span id="userName">Administrador</span>
+                        </button>
+                        <div class="dropdown-content">
+                            <span id="userEmail" class="dropdown-item disabled">admin@sistema.com</span>
+                            <a href="#" id="logoutButton" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <h1>Panel de Control</h1>
+            
+            <div class="tabs">
+                <div class="tab-list">
+                    <button class="tab-button active" data-tab="all">Todas las Patentes</button>
+                    <button class="tab-button" data-tab="accidents">Patentes con Accidentes</button>
+                    <button class="tab-button" data-tab="notifications">Notificaciones Enviadas</button>
+                </div>
+                
+                <div class="tab-content active" id="all">
+                    <div class="search-bar">
+                        <div class="search-input-container">
+                            <i class="fas fa-search"></i>
+                            <input type="search" id="searchVehicles" placeholder="Buscar patente, marca o modelo...">
+                        </div>
+                        <button class="button">Exportar</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Patente</th>
+                                    <th>Marca</th>
+                                    <th>Modelo</th>
+                                    <th>Año</th>
+                                    <th>Propietario</th>
+                                    <th>Fecha de Registro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehiclesTableBody">
+                                <!-- Datos de vehículos se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="accidents">
+                    <div class="search-bar">
+                        <div class="search-input-container">
+                            <i class="fas fa-search"></i>
+                            <input type="search" id="searchAccidents" placeholder="Buscar patente, marca o modelo...">
+                        </div>
+                        <button class="button">Exportar</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Patente</th>
+                                    <th>Marca/Modelo</th>
+                                    <th>Fecha del Accidente</th>
+                                    <th>Ubicación</th>
+                                    <th>Severidad</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accidentsTableBody">
+                                <!-- Datos de accidentes se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="notifications">
+                    <div class="search-bar">
+                        <div class="search-input-container">
+                            <i class="fas fa-search"></i>
+                            <input type="search" id="searchNotifications" placeholder="Buscar patente o destinatario...">
+                        </div>
+                        <button class="button">Exportar</button>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Patente</th>
+                                    <th>Destinatario</th>
+                                    <th>Método</th>
+                                    <th>Fecha de Envío</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="notificationsTableBody">
+                                <!-- Datos de notificaciones se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast">
+        <div class="toast-content">
+            <h3 id="toastTitle"></h3>
+            <p id="toastMessage"></p>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
