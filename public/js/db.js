@@ -1,13 +1,11 @@
 
-const { MongoClient } = require("mongodb");
+import { MongoClient } from "mongodb";
 
 const connectionString = "mongodb+srv://juangras:timoprograma@cluster0.oopcyug.mongodb.net/";
-
 const client = new MongoClient(connectionString);
-
 let db;
 
-async function getDb() {
+export default async function getDb() {
   if (!db) {
     try {
       const conn = await client.connect();
@@ -19,7 +17,4 @@ async function getDb() {
   }
   return db;
 }
-
-module.exports = getDb;
-
 
