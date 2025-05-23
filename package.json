@@ -1,12 +1,23 @@
 {
-  "name": "patent-db-simplified",
+  "name": "dictionary-v3-support-post",
   "version": "1.0.0",
   "main": "server.js",
+  "type": "module",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "fs-extra": "^3.0.1",
+    "mongodb": "^5.2.0",
+    "passport": "^0.6.0",
+    "passport-google-oauth2": "^0.2.0",
+    "path": "^0.12.7"
+  },
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "dependencies": {
-    "express": "^4.18.2",
-    "mongodb": "^6.16.0"
-  }
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }

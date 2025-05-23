@@ -1,83 +1,43 @@
-// Verificar si el usuario está autenticado
-function checkAuth() {
-  const user = localStorage.getItem("user")
+import passport from 'passport';
+import GoogleStrategy from 'passport-google-oauth2';
+import session from 'express-session';
 
-  // Si estamos en la página de login y el usuario está autenticado, redirigir al dashboard
-  if (window.location.pathname === "/" || window.location.pathname === "/index.html") {
-    if (user) {
-      window.location.href = "dashboard.html"
+class Authentication {
+    constructor(app) {
+        const GOOGLE_CLIENT_ID = "1087925047717-ffjvnfrc7dtq1us5plo9m3qnvuq4vkno.apps.googleusercontent.com";
+        const GOOGLE_CLIENT_SECRET = "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";
+
+        app.use(session({
+            secret: "secret",
+            resave: false,
+            saveUninitialized: true,
+        }));
+
+        app.use(passport.initialize()); // init passport on every route call
+        app.use(passport.session());
+
+        passport.use(new GoogleStrategy({
+            clientID: GOOGLE_CLIENT_ID,
+            clientSecret: GOOGLE_CLIENT_SECRET,
+            callbackURL: "http://localhost:3000/auth/google/callback",
+            passReqToCallback: true
+        }, this.verifyIdentity));
+
+        passport.serializeUser((user, done) => done(null, user));
+        passport.deserializeUser((user, done) => done(null, user));
     }
-  }
-  // Si no estamos en la página de login y el usuario no está autenticado, redirigir al login
-  else {
-    if (!user) {
-      window.location.href = "index.html"
-    } else {
-      // Actualizar la información del usuario en el header
-      updateUserInfo(JSON.parse(user))
+
+    verifyIdentity(request, accessToken, refreshToken, profile, done) {
+        console.log(profile);
+        return done(null, profile);
     }
-  }
+
+    checkAuthenticated(req, res, next) {        
+        if (req.isAuthenticated()) {
+            return next();
+        }
+        res.redirect("/login");
+    }
 }
 
-// Actualizar la información del usuario en el header
-function updateUserInfo(user) {
-  const userNameElement = document.getElementById("userName")
-  const userEmailElement = document.getElementById("userEmail")
-
-  if (userNameElement && user.name) {
-    userNameElement.textContent = user.name
-  }
-
-  if (userEmailElement && user.email) {
-    userEmailElement.textContent = user.email
-  }
-}
-
-// Mostrar un toast (notificación)
-function showToast(title, message, type = "success", duration = 3000) {
-  const toast = document.getElementById("toast")
-  const toastTitle = document.getElementById("toastTitle")
-  const toastMessage = document.getElementById("toastMessage")
-
-  toastTitle.textContent = title
-  toastMessage.textContent = message
-
-  // Aplicar estilo según el tipo
-  toast.className = "toast show"
-
-  if (type === "error") {
-    toastTitle.style.color = "var(--danger-color)"
-  } else if (type === "warning") {
-    toastTitle.style.color = "var(--warning-color)"
-  } else {
-    toastTitle.style.color = "var(--success-color)"
-  }
-
-  // Ocultar el toast después de la duración especificada
-  setTimeout(() => {
-    toast.className = "toast"
-  }, duration)
-}
-
-// Configurar el evento de cierre de sesión
-function setupLogout() {
-  const logoutButton = document.getElementById("logoutButton")
-
-  if (logoutButton) {
-    logoutButton.addEventListener("click", (e) => {
-      e.preventDefault()
-
-      // Eliminar la información del usuario del localStorage
-      localStorage.removeItem("user")
-
-      // Redirigir al login
-      window.location.href = "index.html"
-    })
-  }
-}
-
-// Ejecutar al cargar la página
-document.addEventListener("DOMContentLoaded", () => {
-  checkAuth()
-  setupLogout()
-})
+export default Authentication;
