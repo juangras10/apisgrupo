@@ -5,16 +5,14 @@ import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth2';
 import { fileURLToPath } from 'url';
 import getDb from './public/js/db.js';
-import Authentication from './src/auth.js';
-const auth = new Authentication(app);
-
-
+import Authentication from './auth.js'; // ✅ cambiado
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const app = express();
+const app = express(); // ✅ movido arriba
 const PORT = process.env.PORT || 3000;
 
+const auth = new Authentication(app); // ✅ ya puede usarse
 
 // Middleware para servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
@@ -41,10 +39,37 @@ passport.use(new GoogleStrategy({
   clientSecret: GOOGLE_CLIENT_SECRET,
   callbackURL: "http://localhost:3000/auth/google/callback",
   passReqToCallback: true
-}, (request, accessToken, refreshToken, profile, done) => {
-  console.log(profile);
-  return done(null, profile);
+}, async (request, accessToken, refreshToken, profile, done) => {
+  try {
+    const db = await getDb();
+    const usuariosCollection = db.collection("usuarios");
+
+    // Verificar si el usuario ya existe
+    const usuarioExistente = await usuariosCollection.findOne({ email: profile.email });
+
+    if (!usuarioExistente) {
+      // Insertar nuevo usuario
+      const nuevoUsuario = {
+        nombre: profile.displayName,
+        email: profile.email,
+        googleId: profile.id,
+        foto: profile.picture,
+        fechaRegistro: new Date()
+      };
+
+      await usuariosCollection.insertOne(nuevoUsuario);
+      console.log("✅ Usuario registrado:", profile.email);
+    } else {
+      console.log("ℹ️ Usuario ya existe:", profile.email);
+    }
+
+    return done(null, profile);
+  } catch (error) {
+    console.error("❌ Error al registrar usuario:", error);
+    return done(error, null);
+  }
 }));
+
 
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
@@ -131,6 +156,18 @@ app.post('/vehiculos', checkAuthenticated, async (req, res) => {
   } catch (error) {
     console.error("Error al registrar vehículo:", error);
     res.status(500).json({ success: false, message: "Error al registrar vehículo" });
+  }
+});
+
+// Ruta para registrar accidentes
+app.post('/accidentes', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const result = await db.collection("accidentes").insertOne(req.body);
+    res.status(200).json({ success: true, id: result.insertedId });
+  } catch (error) {
+    console.error("Error al registrar accidente:", error);
+    res.status(500).json({ success: false, message: "Error al registrar accidente" });
   }
 });
 
