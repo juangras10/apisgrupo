@@ -1,20 +1,24 @@
-
 import { MongoClient } from "mongodb";
 
 const connectionString = "mongodb+srv://juangras:timoprograma@cluster0.oopcyug.mongodb.net/";
 const client = new MongoClient(connectionString);
+
+let conn;
 let db;
 
-export default async function getDb() {
-  if (!db) {
+async function connectToDb() {
+  if (!conn) {
     try {
-      const conn = await client.connect();
+      conn = await client.connect();
       console.log("✅ Conectado a MongoDB Atlas");
-      db = conn.db("accidentepatente"); // nombre de tu base de datos
+      db = conn.db("accidentepatente"); // 👈 asegurate que este sea el nombre correcto de tu base
     } catch (e) {
-      console.error("❌ Error al conectar con MongoDB Atlas:", e);
+      console.error("❌ Error al conectar con MongoDB:", e);
+      throw e;
     }
   }
   return db;
 }
+
+export default connectToDb;
 
