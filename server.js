@@ -5,6 +5,10 @@ import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth2';
 import { fileURLToPath } from 'url';
 import getDb from './public/js/db.js';
+import Authentication from './src/auth.js';
+const auth = new Authentication(app);
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -102,6 +106,33 @@ app.get('/vehiculos', checkAuthenticated, async (req, res) => {
     res.status(500).send("Error al obtener los vehículos");
   }
 });
+
+// Ruta para registrar vehículos
+app.post('/vehiculos', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const result = await db.collection("vehiculos").insertOne(req.body);
+    res.status(200).json({ success: true, id: result.insertedId });
+  } catch (error) {
+    console.error("Error al registrar vehículo:", error);
+    res.status(500).json({ success: false, message: "Error al registrar vehículo" });
+  }
+});
+
+
+app.post('/vehiculos', checkAuthenticated, async (req, res) => {
+  try {
+    console.log("Recibido en /vehiculos:", req.body); // 👈
+    const db = await getDb();
+    const result = await db.collection("vehiculos").insertOne(req.body);
+    console.log("Insertado en MongoDB:", result.insertedId); // 👈
+    res.status(200).json({ success: true, id: result.insertedId });
+  } catch (error) {
+    console.error("Error al registrar vehículo:", error);
+    res.status(500).json({ success: false, message: "Error al registrar vehículo" });
+  }
+});
+
 
 // Iniciar servidor
 app.listen(PORT, () => {

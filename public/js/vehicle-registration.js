@@ -1,3 +1,23 @@
+function showToast(title, message, type = "success") {
+  const toast = document.createElement("div")
+  toast.className = `toast toast-${type}`
+  toast.style.position = "fixed"
+  toast.style.top = "20px"
+  toast.style.right = "20px"
+  toast.style.zIndex = "9999"
+  toast.style.backgroundColor = type === "error" ? "#f44336" : (type === "warning" ? "#ff9800" : "#4caf50")
+  toast.style.color = "white"
+  toast.style.padding = "16px"
+  toast.style.borderRadius = "5px"
+  toast.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)"
+  toast.innerHTML = `<strong>${title}</strong><div>${message}</div>`
+  document.body.appendChild(toast)
+
+  setTimeout(() => {
+    toast.remove()
+  }, 3000)
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const vehicleForm = document.getElementById("vehicleForm")
   const searchLicensePlateBtn = document.getElementById("searchLicensePlateBtn")
@@ -72,6 +92,19 @@ async function handleVehicleRegistration(e) {
       identificationNumber: document.getElementById("identificationNumber").value,
       contactEmail: document.getElementById("contactEmail").value,
       contactPhone: document.getElementById("contactPhone").value,
+    }
+    async function registerVehicle(data) {
+      const response = await fetch('/vehiculos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+      },
+      credentials: 'include',  // ⬅️ Esto es clave para mantener la sesión con cookies
+      body: JSON.stringify(data)
+    });
+
+
+      return await response.json();
     }
 
     // Registrar vehículo
