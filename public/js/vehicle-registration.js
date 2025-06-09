@@ -2,6 +2,7 @@ function showToast(title, message, type = "info") {
   console.log(`[${type.toUpperCase()}] ${title}: ${message}`)
 }
 
+
 document.addEventListener("DOMContentLoaded", () => {
   const vehicleForm = document.getElementById("vehicleForm")
   const searchLicensePlateBtn = document.getElementById("searchLicensePlateBtn")
