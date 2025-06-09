@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+
 // Middleware para servir archivos estáticos
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());

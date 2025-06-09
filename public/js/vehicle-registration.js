@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 function showToast(title, message, type = "success") {
   const toast = document.createElement("div")
   toast.className = `toast toast-${type}`
@@ -18,6 +19,13 @@ function showToast(title, message, type = "success") {
   }, 3000)
 }
 
+=======
+function showToast(title, message, type = "info") {
+  console.log(`[${type.toUpperCase()}] ${title}: ${message}`)
+}
+
+
+>>>>>>> 72af7943a9086101874681ca49da00ad028eb78a
 document.addEventListener("DOMContentLoaded", () => {
   const vehicleForm = document.getElementById("vehicleForm")
   const searchLicensePlateBtn = document.getElementById("searchLicensePlateBtn")
