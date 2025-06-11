@@ -1,3 +1,24 @@
+function showToast(title, message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.style.position = "fixed";
+  toast.style.top = "20px";
+  toast.style.right = "20px";
+  toast.style.zIndex = "9999";
+  toast.style.backgroundColor = type === "error" ? "#f44336" : (type === "warning" ? "#ff9800" : "#4caf50");
+  toast.style.color = "white";
+  toast.style.padding = "16px";
+  toast.style.borderRadius = "5px";
+  toast.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+  toast.innerHTML = `<strong>${title}</strong><div>${message}</div>`;
+  document.body.appendChild(toast);
+
+  setTimeout(() => {
+    toast.remove();
+  }, 3000);
+}
+
+
 document.addEventListener("DOMContentLoaded", () => {
   const accidentForm = document.getElementById("accidentForm")
   const searchVehicleBtn = document.getElementById("searchVehicleBtn")
@@ -26,6 +47,12 @@ function toggleReportNumber() {
     reportNumberContainer.classList.add("hidden")
   }
 }
+
+async function getVehicleByLicensePlate(patente) {
+  const response = await fetch(`/vehiculos/${patente}`);
+  return await response.json();
+}
+
 
 async function searchVehicle() {
   const searchInput = document.getElementById("searchVehicleInput")

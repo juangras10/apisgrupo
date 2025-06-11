@@ -188,6 +188,24 @@ app.post('/accidentes', checkAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const patente = req.params.patente.toUpperCase();
+    const vehiculo = await db.collection("vehiculos").findOne({ licensePlate: patente });
+
+    if (vehiculo) {
+      res.status(200).json(vehiculo);
+    } else {
+      res.status(404).json(null);
+    }
+  } catch (error) {
+    console.error("Error al buscar vehículo:", error);
+    res.status(500).json({ success: false, message: "Error al buscar vehículo" });
+  }
+});
+
+
 
 // Iniciar servidor
 app.listen(PORT, () => {
