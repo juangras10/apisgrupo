@@ -253,3 +253,44 @@ function showToast(title, message, type) {
   // Replace with your actual implementation to show a toast notification
   console.log(`Toast: ${title} - ${message} - ${type}`)
 }
+document.getElementById("logoutButton").addEventListener("click", function (e) {
+    e.preventDefault();
+
+    // Opcional: limpiar tokens en localStorage/sessionStorage
+    localStorage.removeItem("token");
+
+    // Llamar al backend para cerrar sesión
+    fetch("/logout", {
+        method: "POST",
+        credentials: "include", // para enviar cookies si se usan
+    })
+    .then(res => {
+        if (res.ok) {
+            // Redirigir al login
+            window.location.href = "/index.html";
+        } else {
+            alert("Error al cerrar sesión");
+        }
+    })
+    .catch(err => {
+        console.error("Logout error", err);
+    });
+    logoutBtn.addEventListener("click", async () => {
+  try {
+    const response = await fetch("/logout", {
+      method: "POST",
+      credentials: "include", // Esto es importante
+    });
+
+    if (response.ok) {
+      window.location.href = "/login";
+    } else {
+      alert("Error al cerrar sesión");
+    }
+  } catch (error) {
+    console.error("Error en logout:", error);
+    alert("Error al cerrar sesión");
+  }
+});
+
+});

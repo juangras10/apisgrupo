@@ -206,6 +206,24 @@ app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
 });
 
 
+app.post("/logout", (req, res, next) => {
+  req.logout(function (err) {
+    if (err) {
+      return next(err);
+    }
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Error al destruir la sesión:", err);
+        return res.status(500).json({ success: false, message: "Error al cerrar sesión" });
+      }
+
+      res.clearCookie("connect.sid"); // Muy importante
+      res.status(200).json({ success: true, message: "Sesión cerrada exitosamente" });
+    });
+  });
+});
+
 
 // Iniciar servidor
 app.listen(PORT, () => {
