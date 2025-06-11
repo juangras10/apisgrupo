@@ -70,7 +70,7 @@ passport.use(new GoogleStrategy({
   }
 }));
 
-app.get('/vehiculos/buscar/:patente', checkAuthenticated, async (req, res) => {
+app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
   try {
     const db = await getDb();
     const patente = req.params.patente.toUpperCase(); // Por si vienen en minúsculas

@@ -106,7 +106,7 @@ function selectVehicle(id, licensePlate) {
 }
 async function getVehicleByLicensePlate(licensePlate) {
   try {
-    const response = await fetch(`/vehiculos/buscar/${licensePlate}`);
+    const response = await fetch(`/vehiculos/${licensePlate}`);
     if (!response.ok) return null;
     const vehicle = await response.json();
     return vehicle;
