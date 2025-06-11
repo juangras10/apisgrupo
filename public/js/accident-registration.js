@@ -104,6 +104,17 @@ function selectVehicle(id, licensePlate) {
   // Habilitar botón de envío
   submitButton.disabled = false
 }
+async function getVehicleByLicensePlate(licensePlate) {
+  try {
+    const response = await fetch(`/vehiculos/buscar/${licensePlate}`);
+    if (!response.ok) return null;
+    const vehicle = await response.json();
+    return vehicle;
+  } catch (error) {
+    console.error("Error en getVehicleByLicensePlate:", error);
+    return null;
+  }
+}
 
 async function handleAccidentRegistration(e) {
   e.preventDefault()
