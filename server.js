@@ -5,17 +5,16 @@ import passport from 'passport';
 import GoogleStrategy from 'passport-google-oauth2';
 import { fileURLToPath } from 'url';
 import getDb from './public/js/db.js';
-import Authentication from './auth.js'; // ✅ cambiado
+import Authentication from './auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const app = express(); // ✅ movido arriba
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-const auth = new Authentication(app); // ✅ ya puede usarse
+const auth = new Authentication(app);
 
-// Middleware para servir archivos estáticos
-app.use(express.static(path.join(__dirname, 'public')));
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -44,11 +43,9 @@ passport.use(new GoogleStrategy({
     const db = await getDb();
     const usuariosCollection = db.collection("usuarios");
 
-    // Verificar si el usuario ya existe
     const usuarioExistente = await usuariosCollection.findOne({ email: profile.email });
 
     if (!usuarioExistente) {
-      // Insertar nuevo usuario
       const nuevoUsuario = {
         nombre: profile.displayName,
         email: profile.email,
@@ -56,7 +53,6 @@ passport.use(new GoogleStrategy({
         foto: profile.picture,
         fechaRegistro: new Date()
       };
-
       await usuariosCollection.insertOne(nuevoUsuario);
       console.log("✅ Usuario registrado:", profile.email);
     } else {
@@ -70,123 +66,27 @@ passport.use(new GoogleStrategy({
   }
 }));
 
-app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
-  try {
-    const db = await getDb();
-    const patente = req.params.patente.toUpperCase(); // Por si vienen en minúsculas
-    const vehiculo = await db.collection("vehiculos").findOne({ licensePlate: patente });
-
-    if (vehiculo) {
-      res.status(200).json(vehiculo);
-    } else {
-      res.status(404).json(null);
-    }
-  } catch (error) {
-    console.error("Error al buscar vehículo por patente:", error);
-    res.status(500).json({ success: false, message: "Error al buscar vehículo" });
-  }
-});
-
-
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((user, done) => done(null, user));
 
-// Middleware para verificar autenticación
+// Middleware de autenticación
 function checkAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
     return next();
   }
+
+  if (req.headers.accept && req.headers.accept.includes('application/json')) {
+    // Si es una llamada AJAX/fetch que espera JSON, respondemos con error
+    return res.status(401).json({ error: 'No autenticado' });
+  }
+
+  // Si es navegación directa desde navegador, redireccionamos al login
   res.redirect('/index.html');
 }
 
-// Ruta de inicio
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/index.html'));
-});
-
-// Rutas de autenticación
-app.get('/auth/google', passport.authenticate('google', {
-  scope: ['email', 'profile']
-}));
-
-app.get('/auth/google/callback', passport.authenticate('google', {
-  successRedirect: '/dashboard.html',
-  failureRedirect: '/index.html'
-}));
-
-// Ruta protegida de ejemplo
-app.get('/dashboard', checkAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/dashboard.html'));
-});
-
-// Estado de autenticación
-app.get('/api/auth/status', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.json({
-      name: req.user.displayName,
-      email: req.user.email
-    });
-  } else {
-    res.status(401).json({ error: 'No autenticado' });
-  }
-});
-
-// Cerrar sesión
-app.post('/api/auth/logout', (req, res) => {
-  req.logout(() => {
-    res.redirect('/index.html');
-  });
-});
-
-// Ruta para obtener vehículos desde MongoDB
-app.get('/vehiculos', checkAuthenticated, async (req, res) => {
-  try {
-    const db = await getDb();
-    const vehiculos = await db.collection("vehiculos").find().toArray();
-    res.json(vehiculos);
-  } catch (error) {
-    console.error("Error al obtener los vehículos:", error);
-    res.status(500).send("Error al obtener los vehículos");
-  }
-});
-
-// Ruta para registrar vehículos
-app.post('/vehiculos', checkAuthenticated, async (req, res) => {
-  try {
-    const db = await getDb();
-    const result = await db.collection("vehiculos").insertOne(req.body);
-    res.status(200).json({ success: true, id: result.insertedId });
-  } catch (error) {
-    console.error("Error al registrar vehículo:", error);
-    res.status(500).json({ success: false, message: "Error al registrar vehículo" });
-  }
-});
-
-
-app.post('/vehiculos', checkAuthenticated, async (req, res) => {
-  try {
-    console.log("Recibido en /vehiculos:", req.body); // 👈
-    const db = await getDb();
-    const result = await db.collection("vehiculos").insertOne(req.body);
-    console.log("Insertado en MongoDB:", result.insertedId); // 👈
-    res.status(200).json({ success: true, id: result.insertedId });
-  } catch (error) {
-    console.error("Error al registrar vehículo:", error);
-    res.status(500).json({ success: false, message: "Error al registrar vehículo" });
-  }
-});
-
-// Ruta para registrar accidentes
-app.post('/accidentes', checkAuthenticated, async (req, res) => {
-  try {
-    const db = await getDb();
-    const result = await db.collection("accidentes").insertOne(req.body);
-    res.status(200).json({ success: true, id: result.insertedId });
-  } catch (error) {
-    console.error("Error al registrar accidente:", error);
-    res.status(500).json({ success: false, message: "Error al registrar accidente" });
-  }
-});
+// ==================
+// 🔁 RUTAS BACKEND
+// ==================
 
 app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
   try {
@@ -205,27 +105,107 @@ app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
   }
 });
 
+app.get('/vehiculos', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const vehiculos = await db.collection("vehiculos").find().toArray();
+    res.json(vehiculos);
+  } catch (error) {
+    console.error("Error al obtener los vehículos:", error);
+    res.status(500).send("Error al obtener los vehículos");
+  }
+});
 
-app.post("/logout", (req, res, next) => {
+app.post('/vehiculos', checkAuthenticated, async (req, res) => {
+  try {
+    console.log("Recibido en /vehiculos:", req.body);
+    const db = await getDb();
+    const result = await db.collection("vehiculos").insertOne(req.body);
+    console.log("Insertado en MongoDB:", result.insertedId);
+    res.status(200).json({ success: true, id: result.insertedId });
+  } catch (error) {
+    console.error("Error al registrar vehículo:", error);
+    res.status(500).json({ success: false, message: "Error al registrar vehículo" });
+  }
+});
+
+app.post('/accidentes', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const result = await db.collection("accidentes").insertOne(req.body);
+    res.status(200).json({ success: true, id: result.insertedId });
+  } catch (error) {
+    console.error("Error al registrar accidente:", error);
+    res.status(500).json({ success: false, message: "Error al registrar accidente" });
+  }
+});
+
+app.post('/logout', (req, res, next) => {
   req.logout(function (err) {
-    if (err) {
-      return next(err);
-    }
-
+    if (err) return next(err);
     req.session.destroy((err) => {
       if (err) {
         console.error("Error al destruir la sesión:", err);
         return res.status(500).json({ success: false, message: "Error al cerrar sesión" });
       }
-
-      res.clearCookie("connect.sid"); // Muy importante
+      res.clearCookie("connect.sid");
       res.status(200).json({ success: true, message: "Sesión cerrada exitosamente" });
     });
   });
 });
 
+// Estado de autenticación
+app.get('/api/auth/status', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.json({
+      name: req.user.displayName,
+      email: req.user.email
+    });
+  } else {
+    res.status(401).json({ error: 'No autenticado' });
+  }
+});
 
-// Iniciar servidor
+// Rutas de autenticación
+app.get('/auth/google', passport.authenticate('google', {
+  scope: ['email', 'profile']
+}));
+
+app.get('/auth/google/callback', passport.authenticate('google', {
+  successRedirect: '/dashboard.html',
+  failureRedirect: '/index.html'
+}));
+
+// ==================
+// 📁 ARCHIVOS ESTÁTICOS (al final)
+// ==================
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Página principal
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
+
+// Dashboard (protegido)
+app.get('/dashboard', checkAuthenticated, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/dashboard.html'));
+});
+
+// Manejador para rutas no encontradas (404)
+app.use((req, res, next) => {
+  if (req.accepts('json')) {
+    res.status(404).json({ error: 'Ruta no encontrada' });
+  } else {
+    res.sendFile(path.join(__dirname, 'public/index.html'));
+  }
+});
+
+
+// ==================
+// 🚀 INICIAR SERVIDOR
+// ==================
+
 app.listen(PORT, () => {
   console.log(`✅ Servidor corriendo en http://localhost:${PORT}`);
 });

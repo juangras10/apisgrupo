@@ -19,23 +19,32 @@ function showToast(title, message, type = "success") {
 }
 
 
-document.addEventListener("DOMContentLoaded", () => {
-  const accidentForm = document.getElementById("accidentForm")
-  const searchVehicleBtn = document.getElementById("searchVehicleBtn")
-  const policeReportCheckbox = document.getElementById("policeReport")
+document.addEventListener("DOMContentLoaded", async () => {
+  // 🔐 Verificación de login
+  const status = await fetch("/api/auth/status").then(res => res.status);
+  if (status !== 200) {
+    window.location.href = "/index.html";
+    return;
+  }
+
+  // 🎯 El resto de tu código original sigue igual
+  const accidentForm = document.getElementById("accidentForm");
+  const searchVehicleBtn = document.getElementById("searchVehicleBtn");
+  const policeReportCheckbox = document.getElementById("policeReport");
 
   if (accidentForm) {
-    accidentForm.addEventListener("submit", handleAccidentRegistration)
+    accidentForm.addEventListener("submit", handleAccidentRegistration);
   }
 
   if (searchVehicleBtn) {
-    searchVehicleBtn.addEventListener("click", searchVehicle)
+    searchVehicleBtn.addEventListener("click", searchVehicle);
   }
 
   if (policeReportCheckbox) {
-    policeReportCheckbox.addEventListener("change", toggleReportNumber)
+    policeReportCheckbox.addEventListener("change", toggleReportNumber);
   }
-})
+});
+
 
 function toggleReportNumber() {
   const policeReportCheckbox = document.getElementById("policeReport")
@@ -79,7 +88,7 @@ async function searchVehicle() {
     if (vehicle) {
       searchResults.innerHTML = `
                 <p>Resultados:</p>
-                <div class="search-result-item" data-id="${vehicle.id}" data-plate="${vehicle.licensePlate}">
+                <div class="search-result-item" data-id="${vehicle._id}" data-plate="${vehicle.licensePlate}">
                     <div class="search-result-info">
                         <p class="license-plate">${vehicle.licensePlate}</p>
                         <p class="vehicle-details">${vehicle.make} ${vehicle.model} (${vehicle.year}) - ${vehicle.owner}</p>
@@ -133,15 +142,33 @@ function selectVehicle(id, licensePlate) {
 }
 async function getVehicleByLicensePlate(licensePlate) {
   try {
-    const response = await fetch(`/vehiculos/${licensePlate}`);
-    if (!response.ok) return null;
-    const vehicle = await response.json();
-    return vehicle;
+    const response = await fetch(`/vehiculos/${licensePlate}`, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    });
+
+    // ⚠️ Si no está autenticado, el backend devuelve JSON con error
+    if (!response.ok) {
+      const text = await response.text();
+      try {
+        const json = JSON.parse(text);
+        if (json.error === 'No autenticado') {
+          throw new Error('No autenticado');
+        }
+      } catch {
+        throw new Error('Respuesta no válida del servidor');
+      }
+    }
+
+    return await response.json();
   } catch (error) {
     console.error("Error en getVehicleByLicensePlate:", error);
+    showToast("Error", error.message || "Error desconocido", "error");
     return null;
   }
 }
+
 
 async function handleAccidentRegistration(e) {
   e.preventDefault()
