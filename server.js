@@ -106,7 +106,6 @@ app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
 });
 
 
-
 app.post('/vehiculos', checkAuthenticated, async (req, res) => {
   try {
     console.log("Recibido en /vehiculos:", req.body);
@@ -130,6 +129,7 @@ app.post('/accidentes', checkAuthenticated, async (req, res) => {
     res.status(500).json({ success: false, message: "Error al registrar accidente" });
   }
 });
+
 
 app.post('/logout', (req, res, next) => {
   req.logout(function (err) {
@@ -185,7 +185,7 @@ app.get('/dashboard', checkAuthenticated, (req, res) => {
 });
 
 
-app.get('/api/accidentes/:patente', checkAuthenticated, async (req, res) => {
+app.get('accidentes/:patente', checkAuthenticated, async (req, res) => {
   try {
     const db = await getDb();
     const patente = req.params.patente.toUpperCase();

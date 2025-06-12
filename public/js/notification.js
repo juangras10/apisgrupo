@@ -1,162 +1,180 @@
+function showToast(title, message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `toast toast-${type}`;
+  toast.style.position = "fixed";
+  toast.style.top = "20px";
+  toast.style.right = "20px";
+  toast.style.zIndex = "9999";
+  toast.style.backgroundColor = type === "error" ? "#f44336" : (type === "warning" ? "#ff9800" : "#4caf50");
+  toast.style.color = "white";
+  toast.style.padding = "16px";
+  toast.style.borderRadius = "5px";
+  toast.style.boxShadow = "0 2px 6px rgba(0,0,0,0.3)";
+  toast.innerHTML = `<strong>${title}</strong><div>${message}</div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  const notificationForm = document.getElementById("notificationForm")
-  const searchVehicleBtn = document.getElementById("searchVehicleBtn")
-  const methodSelect = document.getElementById("method")
+  const notificationForm = document.getElementById("notificationForm");
+  const searchVehicleBtn = document.getElementById("searchVehicleBtn");
+  const methodSelect = document.getElementById("method");
 
   if (notificationForm) {
-    notificationForm.addEventListener("submit", handleNotificationSubmit)
+    notificationForm.addEventListener("submit", handleNotificationSubmit);
   }
 
   if (searchVehicleBtn) {
-    searchVehicleBtn.addEventListener("click", searchAccidentVehicle)
+    searchVehicleBtn.addEventListener("click", searchAccidentVehicle);
   }
 
   if (methodSelect) {
-    methodSelect.addEventListener("change", updateContactInfoLabel)
+    methodSelect.addEventListener("change", updateContactInfoLabel);
   }
-})
+});
 
 function updateContactInfoLabel() {
-  const methodSelect = document.getElementById("method")
-  const contactInfoLabel = document.getElementById("contactInfoLabel")
-  const contactInfoInput = document.getElementById("contactInfo")
+  const methodSelect = document.getElementById("method");
+  const contactInfoLabel = document.getElementById("contactInfoLabel");
+  const contactInfoInput = document.getElementById("contactInfo");
 
   if (methodSelect.value === "email") {
-    contactInfoLabel.textContent = "Correo Electrónico *"
-    contactInfoInput.type = "email"
-    contactInfoInput.placeholder = "correo@ejemplo.com"
+    contactInfoLabel.textContent = "Correo Electrónico *";
+    contactInfoInput.type = "email";
+    contactInfoInput.placeholder = "correo@ejemplo.com";
   } else {
-    contactInfoLabel.textContent = "Número de Teléfono *"
-    contactInfoInput.type = "tel"
-    contactInfoInput.placeholder = "+56 9 1234 5678"
+    contactInfoLabel.textContent = "Número de Teléfono *";
+    contactInfoInput.type = "tel";
+    contactInfoInput.placeholder = "+56 9 1234 5678";
+  }
+}
+
+async function getAccidentByLicensePlate(patente) {
+  try {
+    const response = await fetch(`/api/accidentes/${patente}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || "Error al buscar accidentes");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error al obtener accidentes:", error);
+    showToast("Error", error.message || "Error desconocido", "error");
+    return null;
   }
 }
 
 async function searchAccidentVehicle() {
-  const searchInput = document.getElementById("searchVehicleInput")
-  const searchButton = document.getElementById("searchVehicleBtn")
-  const searchResults = document.getElementById("searchResults")
+  const searchInput = document.getElementById("searchVehicleInput");
+  const searchButton = document.getElementById("searchVehicleBtn");
+  const searchResults = document.getElementById("searchResults");
 
-  if (!searchInput.value) {
-    showToast("Error", "Ingrese una patente para buscar", "error")
-    return
+  const patente = searchInput.value.trim().toUpperCase();
+  if (!patente) {
+    showToast("Error", "Ingrese una patente para buscar", "error");
+    return;
   }
 
-  // Cambiar estado del botón
-  const originalText = searchButton.textContent
-  searchButton.disabled = true
-  searchButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...'
+  // Cambiar botón a "cargando"
+  const originalText = searchButton.textContent;
+  searchButton.disabled = true;
+  searchButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Buscando...';
 
   try {
-    // Buscar vehículos con accidentes
-    const vehicles = await searchAccidentVehicles(searchInput.value)
+    const vehicle = await getAccidentByLicensePlate(patente);
 
-    // Mostrar resultados
-    searchResults.classList.remove("hidden")
+    searchResults.classList.remove("hidden");
 
-    if (vehicles && vehicles.length > 0) {
-      let resultsHTML = "<p>Resultados:</p>"
-
-      vehicles.forEach((vehicle) => {
-        resultsHTML += `
-                    <div class="search-result-item" 
-                         data-id="${vehicle.id}" 
-                         data-plate="${vehicle.licensePlate}"
-                         data-owner="${vehicle.owner}"
-                         data-accident-date="${new Date(vehicle.accident?.date || "").toLocaleDateString()}"
-                         data-accident-location="${vehicle.accident?.location || ""}">
-                        <div class="search-result-info">
-                            <p class="license-plate">${vehicle.licensePlate}</p>
-                            <p class="vehicle-details">${vehicle.make} ${vehicle.model} (${vehicle.year}) - ${vehicle.owner}</p>
-                            ${
-                              vehicle.accident
-                                ? `
-                                <p class="accident-info">
-                                    Accidente: ${new Date(vehicle.accident.date).toLocaleDateString()} - 
-                                    ${vehicle.accident.location}
-                                </p>
-                            `
-                                : ""
-                            }
-                        </div>
-                        <button type="button" class="button button-sm select-vehicle-btn">Seleccionar</button>
-                    </div>
-                `
-      })
-
-      searchResults.innerHTML = resultsHTML
-
-      // Configurar evento para seleccionar vehículo
-      const selectButtons = searchResults.querySelectorAll(".select-vehicle-btn")
-      selectButtons.forEach((button) => {
-        button.addEventListener("click", function () {
-          const item = this.closest(".search-result-item")
-          selectVehicleForNotification(
-            item.dataset.id,
-            item.dataset.plate,
-            item.dataset.owner,
-            item.dataset.accidentDate,
-            item.dataset.accidentLocation,
-          )
-        })
-      })
-    } else {
+    if (vehicle && vehicle.accident) {
       searchResults.innerHTML = `
-                <p>No se encontraron vehículos con accidentes para esa patente.</p>
-            `
+        <div class="search-result-item" 
+             data-id="${vehicle._id}" 
+             data-plate="${vehicle.licensePlate}" 
+             data-owner="${vehicle.owner}" 
+             data-accident-date="${new Date(vehicle.accident.date).toLocaleDateString()}" 
+             data-accident-location="${vehicle.accident.location}">
+          <div class="search-result-info">
+            <p class="license-plate">${vehicle.licensePlate}</p>
+            <p class="vehicle-details">${vehicle.make} ${vehicle.model} (${vehicle.year}) - ${vehicle.owner}</p>
+            <p class="accident-info">Accidente: ${new Date(vehicle.accident.date).toLocaleDateString()} - ${vehicle.accident.location}</p>
+          </div>
+          <button type="button" class="button button-sm select-vehicle-btn">Seleccionar</button>
+        </div>
+      `;
+
+      const selectBtn = searchResults.querySelector(".select-vehicle-btn");
+      selectBtn.addEventListener("click", () => {
+        selectVehicleForNotification(
+          vehicle._id,
+          vehicle.licensePlate,
+          vehicle.owner,
+          new Date(vehicle.accident.date).toLocaleDateString(),
+          vehicle.accident.location
+        );
+      });
+    } else {
+      searchResults.innerHTML = `<p>No se encontraron accidentes para esa patente.</p>`;
     }
   } catch (error) {
-    console.error("Error al buscar vehículo:", error)
-    showToast("Error", "Ocurrió un error al buscar el vehículo", "error")
+    console.error("Error al buscar accidente:", error);
+    showToast("Error", "Ocurrió un error al buscar el vehículo", "error");
   } finally {
-    // Restaurar el botón
-    searchButton.disabled = false
-    searchButton.textContent = originalText
+    searchButton.disabled = false;
+    searchButton.textContent = originalText;
   }
 }
 
 function selectVehicleForNotification(id, licensePlate, owner, accidentDate, accidentLocation) {
-  const vehicleIdInput = document.getElementById("vehicleId")
-  const licensePlateInput = document.getElementById("licensePlate")
-  const recipientInput = document.getElementById("recipient")
-  const subjectInput = document.getElementById("subject")
-  const messageInput = document.getElementById("message")
-  const selectedVehicle = document.getElementById("selectedVehicle")
-  const selectedLicensePlate = document.getElementById("selectedLicensePlate")
-  const submitButton = document.getElementById("submitNotificationBtn")
-  const searchResults = document.getElementById("searchResults")
+  const vehicleIdInput = document.getElementById("vehicleId");
+  const licensePlateInput = document.getElementById("licensePlate");
+  const recipientInput = document.getElementById("recipient");
+  const subjectInput = document.getElementById("subject");
+  const messageInput = document.getElementById("message");
+  const selectedVehicle = document.getElementById("selectedVehicle");
+  const selectedLicensePlate = document.getElementById("selectedLicensePlate");
+  const submitButton = document.getElementById("submitNotificationBtn");
+  const searchResults = document.getElementById("searchResults");
 
-  // Establecer valores
-  vehicleIdInput.value = id
-  licensePlateInput.value = licensePlate
-  recipientInput.value = owner
-  selectedLicensePlate.textContent = licensePlate
+  vehicleIdInput.value = id;
+  licensePlateInput.value = licensePlate;
+  recipientInput.value = owner;
+  selectedLicensePlate.textContent = licensePlate;
 
-  // Establecer asunto y mensaje predeterminados
-  subjectInput.value = `Notificación de accidente - Patente ${licensePlate}`
-  messageInput.value = `Estimado/a ${owner},\n\nLe informamos que se ha registrado un accidente con el vehículo de patente ${licensePlate} ocurrido el ${accidentDate} en ${accidentLocation}.\n\nPor favor, póngase en contacto con nosotros para más información.\n\nAtentamente,\nSistema de Registro de Patentes`
+  subjectInput.value = `Notificación de accidente - Patente ${licensePlate}`;
+  messageInput.value = `Estimado/a ${owner},\n\nSe ha registrado un accidente con el vehículo de patente ${licensePlate} el día ${accidentDate} en ${accidentLocation}.\n\nPor favor, contáctese con nosotros para más información.\n\nAtentamente,\nSistema de Registro de Patentes`;
 
-  // Mostrar vehículo seleccionado y ocultar resultados
-  selectedVehicle.classList.remove("hidden")
-  searchResults.classList.add("hidden")
+  selectedVehicle.classList.remove("hidden");
+  searchResults.classList.add("hidden");
+  submitButton.disabled = false;
+}
 
-  // Habilitar botón de envío
-  submitButton.disabled = false
+async function sendNotification(data) {
+  const response = await fetch("/notificaciones", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Error al enviar notificación");
+  }
+
+  return await response.json();
 }
 
 async function handleNotificationSubmit(e) {
-  e.preventDefault()
+  e.preventDefault();
 
-  const submitButton = document.getElementById("submitNotificationBtn")
-
-  // Cambiar estado del botón
-  const originalText = submitButton.textContent
-  submitButton.disabled = true
-  submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...'
+  const submitButton = document.getElementById("submitNotificationBtn");
+  const originalText = submitButton.textContent;
+  submitButton.disabled = true;
+  submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
 
   try {
-    // Recopilar datos del formulario
-    const formData = {
+    const data = {
       vehicleId: document.getElementById("vehicleId").value,
       licensePlate: document.getElementById("licensePlate").value,
       recipient: document.getElementById("recipient").value,
@@ -165,74 +183,21 @@ async function handleNotificationSubmit(e) {
       subject: document.getElementById("subject").value,
       message: document.getElementById("message").value,
       attachReport: document.getElementById("attachReport").checked,
-    }
+    };
 
-    // Enviar notificación
-    const result = await sendNotification(formData)
+    const result = await sendNotification(data);
 
     if (result.success) {
-      showToast("Notificación enviada", "La notificación ha sido enviada exitosamente")
-
-      // Redirigir al dashboard después de un breve retraso
+      showToast("Notificación enviada", "La notificación se envió exitosamente");
       setTimeout(() => {
-        window.location.href = "dashboard.html"
-      }, 1500)
+        window.location.href = "dashboard.html";
+      }, 1500);
     }
   } catch (error) {
-    console.error("Error al enviar notificación:", error)
-    showToast("Error", "Ocurrió un error al enviar la notificación", "error")
+    console.error("Error al enviar notificación:", error);
+    showToast("Error", "No se pudo enviar la notificación", "error");
   } finally {
-    // Restaurar el botón
-    submitButton.disabled = false
-    submitButton.textContent = originalText
+    submitButton.disabled = false;
+    submitButton.textContent = originalText;
   }
 }
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("searchInput");
-  const searchBtn = document.getElementById("searchBtn");
-  const searchResults = document.getElementById("searchResults");
-
-  if (!searchInput || !searchBtn || !searchResults) return; // No correr si no existen
-
-  searchBtn.addEventListener("click", async () => {
-    const patente = searchInput.value.trim().toUpperCase();
-    if (!patente) return;
-
-    try {
-      const response = await fetch(`/api/accidentes/${patente}`);
-
-      if (response.status === 404) {
-        searchResults.innerHTML = "<p>No se encontraron vehículos con accidentes para esa patente.</p>";
-        return;
-      }
-
-      if (!response.ok) throw new Error("Error al buscar vehículo");
-
-      const vehicle = await response.json();
-      const resultsHTML = `
-        <div class="search-result-item" 
-            data-id="${vehicle._id}" 
-            data-plate="${vehicle.licensePlate}"
-            data-owner="${vehicle.owner}"
-            data-accident-date="${new Date(vehicle.accident.date).toLocaleDateString()}"
-            data-accident-location="${vehicle.accident.location}">
-          <div class="search-result-info">
-              <p class="license-plate">${vehicle.licensePlate}</p>
-              <p class="vehicle-details">${vehicle.make} ${vehicle.model} (${vehicle.year}) - ${vehicle.owner}</p>
-              <p class="accident-info">
-                Accidente: ${new Date(vehicle.accident.date).toLocaleDateString()} - 
-                ${vehicle.accident.location}
-              </p>
-          </div>
-          <button type="button" class="button button-sm select-vehicle-btn">Seleccionar</button>
-        </div>
-      `;
-
-      searchResults.innerHTML = resultsHTML;
-    } catch (error) {
-      console.error("Error:", error);
-      searchResults.innerHTML = "<p>Ocurrió un error al buscar vehículos.</p>";
-    }
-  });
-});
-
