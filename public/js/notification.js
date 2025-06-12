@@ -187,3 +187,52 @@ async function handleNotificationSubmit(e) {
     submitButton.textContent = originalText
   }
 }
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+  const searchBtn = document.getElementById("searchBtn");
+  const searchResults = document.getElementById("searchResults");
+
+  if (!searchInput || !searchBtn || !searchResults) return; // No correr si no existen
+
+  searchBtn.addEventListener("click", async () => {
+    const patente = searchInput.value.trim().toUpperCase();
+    if (!patente) return;
+
+    try {
+      const response = await fetch(`/api/accidentes/${patente}`);
+
+      if (response.status === 404) {
+        searchResults.innerHTML = "<p>No se encontraron vehículos con accidentes para esa patente.</p>";
+        return;
+      }
+
+      if (!response.ok) throw new Error("Error al buscar vehículo");
+
+      const vehicle = await response.json();
+      const resultsHTML = `
+        <div class="search-result-item" 
+            data-id="${vehicle._id}" 
+            data-plate="${vehicle.licensePlate}"
+            data-owner="${vehicle.owner}"
+            data-accident-date="${new Date(vehicle.accident.date).toLocaleDateString()}"
+            data-accident-location="${vehicle.accident.location}">
+          <div class="search-result-info">
+              <p class="license-plate">${vehicle.licensePlate}</p>
+              <p class="vehicle-details">${vehicle.make} ${vehicle.model} (${vehicle.year}) - ${vehicle.owner}</p>
+              <p class="accident-info">
+                Accidente: ${new Date(vehicle.accident.date).toLocaleDateString()} - 
+                ${vehicle.accident.location}
+              </p>
+          </div>
+          <button type="button" class="button button-sm select-vehicle-btn">Seleccionar</button>
+        </div>
+      `;
+
+      searchResults.innerHTML = resultsHTML;
+    } catch (error) {
+      console.error("Error:", error);
+      searchResults.innerHTML = "<p>Ocurrió un error al buscar vehículos.</p>";
+    }
+  });
+});
+

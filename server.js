@@ -105,16 +105,7 @@ app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
   }
 });
 
-app.get('/vehiculos', checkAuthenticated, async (req, res) => {
-  try {
-    const db = await getDb();
-    const vehiculos = await db.collection("vehiculos").find().toArray();
-    res.json(vehiculos);
-  } catch (error) {
-    console.error("Error al obtener los vehículos:", error);
-    res.status(500).send("Error al obtener los vehículos");
-  }
-});
+
 
 app.post('/vehiculos', checkAuthenticated, async (req, res) => {
   try {
@@ -154,6 +145,7 @@ app.post('/logout', (req, res, next) => {
   });
 });
 
+
 // Estado de autenticación
 app.get('/api/auth/status', (req, res) => {
   if (req.isAuthenticated()) {
@@ -191,6 +183,30 @@ app.get('/', (req, res) => {
 app.get('/dashboard', checkAuthenticated, (req, res) => {
   res.sendFile(path.join(__dirname, 'public/dashboard.html'));
 });
+
+
+app.get('/api/accidentes/:patente', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const patente = req.params.patente.toUpperCase();
+
+    const accidente = await db.collection("accidentes").findOne({ licensePlate: patente });
+    if (!accidente) return res.status(404).json({ error: "No se encontró accidente" });
+
+    const vehiculo = await db.collection("vehiculos").findOne({ licensePlate: patente });
+    if (!vehiculo) return res.status(404).json({ error: "Vehículo no encontrado" });
+
+    res.json({ ...vehiculo, accident: accidente });
+  } catch (err) {
+    console.error("Error en /api/accidentes/:patente", err);
+    res.status(500).json({ error: "Error del servidor" });
+  }
+  
+
+});
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Manejador para rutas no encontradas (404)
 app.use((req, res, next) => {
