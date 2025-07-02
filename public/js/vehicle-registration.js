@@ -112,14 +112,17 @@ async function handleVehicleRegistration(e) {
     // Registrar vehículo
     const result = await registerVehicle(formData)
 
-    if (result.success) {
-      showToast("Vehículo registrado", "El vehículo ha sido registrado exitosamente")
+   if (result.success) {
+  // Guardamos el ID del vehículo recién creado
+  window.lastRegisteredVehicleId = result.id;
 
-      // Redirigir al dashboard después de un breve retraso
-      setTimeout(() => {
-        window.location.href = "dashboard.html"
-      }, 1500)
-    }
+  showToast("Vehículo registrado", "El vehículo ha sido registrado exitosamente");
+
+  // Redirigir al dashboard después de un breve retraso
+  setTimeout(() => {
+    window.location.href = "dashboard.html";
+  }, 1500);
+}
   } catch (error) {
     console.error("Error al registrar vehículo:", error)
     showToast("Error", "Ocurrió un error al registrar el vehículo", "error")

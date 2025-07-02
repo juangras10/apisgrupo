@@ -58,7 +58,7 @@ function renderVehiclesTable(vehicles) {
 }
 
 // Renderizar tabla de accidentes
-function renderAccidentsTable(vehicles) {
+/*function renderAccidentsTable(vehicles) {
   const tableBody = document.getElementById("accidentsTableBody")
 
   if (!tableBody) return
@@ -101,7 +101,50 @@ function renderAccidentsTable(vehicles) {
 
     tableBody.appendChild(row)
   })
+}*/
+
+
+
+function renderAccidentsTable(accidents) {
+  const tableBody = document.getElementById("accidentsTableBody");
+  if (!tableBody) return;
+
+  tableBody.innerHTML = "";
+
+  if (accidents.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center">No se encontraron accidentes.</td>
+      </tr>`;
+    return;
+  }
+
+  accidents.forEach((accident) => {
+    const row = document.createElement("tr");
+    row.dataset.id = accident._id;
+
+    row.innerHTML = `
+      <td>${accident.licensePlate}</td>
+      <td>${accident.location}</td>
+      <td>${accident.severity || '-'}</td>
+      <td>${accident.description || '-'}</td>
+      <td>
+        <button class="button button-sm button-primary" onclick="editarAccidente('${accident._id}')">✏️ Editar</button>
+        <button class="button button-sm button-danger" onclick="eliminarAccidente('${accident._id}')">🗑️ Eliminar</button>
+      </td>
+    `;
+
+    tableBody.appendChild(row);
+  });
 }
+
+
+
+
+
+
+
+
 
 // Renderizar tabla de notificaciones
 function renderNotificationsTable(notifications) {
@@ -147,6 +190,7 @@ function renderNotificationsTable(notifications) {
     tableBody.appendChild(row)
   })
 }
+
 
 // Configurar búsqueda
 function setupSearch(inputId, data, renderFunction) {
@@ -203,37 +247,16 @@ function setupTabs() {
 }
 
 async function getAllVehicles() {
-  // Replace with your actual implementation to fetch all vehicles
-  return [
-    {
-      licensePlate: "ABC-123",
-      make: "Toyota",
-      model: "Corolla",
-      year: 2020,
-      owner: "John Doe",
-      registeredAt: new Date(),
-    },
-    {
-      licensePlate: "XYZ-789",
-      make: "Honda",
-      model: "Civic",
-      year: 2021,
-      owner: "Jane Smith",
-      registeredAt: new Date(),
-    },
-  ]
+  const response = await fetch('/vehiculos');
+  return await response.json();
 }
 
 async function getAccidentVehicles() {
-  // Replace with your actual implementation to fetch accident vehicles
-  return [
-    {
-      licensePlate: "ABC-123",
-      make: "Toyota",
-      model: "Corolla",
-      accident: { date: new Date(), location: "Main Street", severity: "high", notified: true },
-    },
-  ]
+  const response = await fetch('/accidentes', {
+    method: 'GET',
+    credentials: 'include'
+  });
+  return await response.json();
 }
 
 async function getNotifications() {
@@ -294,3 +317,32 @@ document.getElementById("logoutButton").addEventListener("click", function (e) {
 });
 
 });
+
+async function editarAccidente(id) {
+  window.location.href = `edit-accident.html?id=${id}`;
+}
+
+
+async function eliminarAccidente(id) {
+  if (!confirm("¿Estás seguro que querés eliminar este accidente?")) return;
+
+  try {
+    const response = await fetch(`/accidentes/${id}`, {
+      method: "DELETE"
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || "Error al eliminar");
+    }
+
+    // 🔥 Eliminar la fila directamente del DOM
+    const row = document.querySelector(`[data-id="${id}"]`);
+    if (row) row.remove();
+
+    showToast("Éxito", "Accidente eliminado correctamente");
+  } catch (error) {
+    console.error("Error al eliminar accidente:", error);
+    showToast("Error", error.message, "error");
+  }
+}

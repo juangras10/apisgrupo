@@ -6,6 +6,7 @@ import GoogleStrategy from 'passport-google-oauth2';
 import { fileURLToPath } from 'url';
 import getDb from './public/js/db.js';
 import Authentication from './auth.js';
+import { ObjectId } from 'mongodb';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -106,11 +107,38 @@ app.get('/vehiculos/:patente', checkAuthenticated, async (req, res) => {
 });
 
 
+
+
+app.get('/vehiculos', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const vehicles = await db
+      .collection("vehiculos")
+      .find({ userEmail: req.user.email }) // 👈 solo vehículos tuyos
+      .toArray();
+
+    res.status(200).json(vehicles);
+  } catch (error) {
+    console.error("Error al obtener vehículos:", error);
+    res.status(500).json({ message: "Error al obtener vehículos" });
+  }
+});
+
+
+
+
 app.post('/vehiculos', checkAuthenticated, async (req, res) => {
   try {
     console.log("Recibido en /vehiculos:", req.body);
     const db = await getDb();
-    const result = await db.collection("vehiculos").insertOne(req.body);
+    
+const nuevoVehiculo = {
+  ...req.body,
+  userEmail: req.user.email
+};
+
+const result = await db.collection("vehiculos").insertOne(nuevoVehiculo);
+
     console.log("Insertado en MongoDB:", result.insertedId);
     res.status(200).json({ success: true, id: result.insertedId });
   } catch (error) {
@@ -122,7 +150,15 @@ app.post('/vehiculos', checkAuthenticated, async (req, res) => {
 app.post('/accidentes', checkAuthenticated, async (req, res) => {
   try {
     const db = await getDb();
-    const result = await db.collection("accidentes").insertOne(req.body);
+
+    const nuevoAccidente = {
+      ...req.body, // copia todo lo que vino del formulario
+      userEmail: req.user.email // agrega el email del usuario logueado
+      //vehicleId: new ObjectId(req.body.vehicleId) //
+    };
+
+    const result = await db.collection("accidentes").insertOne(nuevoAccidente);
+
     res.status(200).json({ success: true, id: result.insertedId });
   } catch (error) {
     console.error("Error al registrar accidente:", error);
@@ -203,6 +239,175 @@ app.get('accidentes/:patente', checkAuthenticated, async (req, res) => {
   }
   
 
+});
+
+
+
+
+app.get('/vehiculos-con-accidentes', checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const vehicles = await db.collection("vehiculos").aggregate([
+      {
+        $lookup: {
+          from: "accidentes",
+          localField: "_id",
+          foreignField: "vehicleId",
+          as: "accident"
+        }
+      },
+      { $unwind: "$accident" },
+      { $match: { userEmail: req.user.email } }
+    ]).toArray();
+
+    res.status(200).json(vehicles);
+  } catch (error) {
+    console.error("Error al obtener vehículos con accidentes:", error);
+    res.status(500).json({ message: "Error al obtener vehículos con accidentes" });
+  }
+});
+
+
+
+
+
+app.get("/accidentes", checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+
+    // Solo traemos los accidentes del usuario logueado
+    const accidentes = await db
+      .collection("accidentes")
+      .find({ userEmail: req.user.email })
+      .toArray();
+
+    res.status(200).json(accidentes);
+  } catch (error) {
+    console.error("Error al obtener accidentes:", error);
+    res.status(500).json({ message: "Error al obtener accidentes" });
+  }
+});
+
+
+
+
+
+
+app.get("/accidentes/:id", checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const accident = await db.collection("accidentes").findOne({
+      _id: new ObjectId(req.params.id),
+      userEmail: req.user.email, // Solo si el usuario es dueño
+    });
+
+    if (!accident) {
+      return res.status(404).json({ error: "Accidente no encontrado" });
+    }
+
+    res.json(accident);
+  } catch (err) {
+    console.error("Error buscando accidente:", err);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+
+
+
+
+
+// Editar accidente
+app.put("/accidentes/:id", checkAuthenticated, async (req, res) => {
+  try {
+    const db = await getDb();
+    const updateFields = {
+      location: req.body.location,
+      description: req.body.description,
+      severity: req.body.severity,
+      date: `${req.body.date}T${req.body.time}:00Z`,
+    };
+
+    const result = await db.collection("accidentes").updateOne(
+      { _id: new ObjectId(req.params.id), userEmail: req.user.email },
+      { $set: updateFields }
+    );
+
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: "No se pudo actualizar" });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error actualizando accidente:", err);
+    res.status(500).json({ error: "Error interno" });
+  }
+});
+
+
+
+
+
+
+
+app.delete("/accidentes/:id", async (req, res) => {
+  const db = await getDb();
+ 
+
+const accidentId = req.params.id;
+
+if (!ObjectId.isValid(accidentId)) {
+  return res.status(400).send("ID inválido");
+}
+
+const accident = await db.collection("accidentes").findOne({ _id: new ObjectId(accidentId) });
+
+
+  if (!accident) return res.status(404).send("Accidente no encontrado");
+
+  // Verificamos que el accidente sea del usuario actual
+  if (accident.userEmail !== req.user.email) {
+    return res.status(403).send("No autorizado");
+  }
+
+  await db.collection("accidentes").deleteOne({ _id: new ObjectId(accidentId) });
+
+  res.status(200).send("Accidente eliminado");
+});
+
+app.patch("/accidentes/:id", async (req, res) => {
+  const db = await getDb();
+ 
+
+const accidentId = req.params.id;
+
+if (!ObjectId.isValid(accidentId)) {
+  return res.status(400).send("ID inválido");
+}
+
+const accident = await db.collection("accidentes").findOne({ _id: new ObjectId(accidentId) });
+
+
+  if (!accident) return res.status(404).send("Accidente no encontrado");
+
+  // Verificamos que el accidente sea del usuario actual
+  if (accident.userEmail !== req.user.email) {
+    return res.status(403).send("No autorizado");
+  }
+
+  const updateData = {
+    licensePlate: req.body.licensePlate,
+    location: req.body.location,
+    description: req.body.description,
+    severity: req.body.severity
+  };
+
+  await db.collection("accidentes").updateOne(
+    { _id: new ObjectId(accidentId) },
+    { $set: updateData }
+  );
+
+  res.status(200).send("Accidente actualizado");
 });
 
 
