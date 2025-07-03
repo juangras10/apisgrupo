@@ -2,52 +2,54 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Editar Accidente</title>
-
-  <!-- Estilos propios -->
-  <link rel="stylesheet" href="edit-accident.css" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+  <link rel="stylesheet" href="forms.css" />
+    <link rel="stylesheet" href="/css/edit-accident.css" />
 </head>
 <body>
   <div class="container">
-    <h1>✏️ Editar Accidente</h1>
-    
-    <form id="editAccidentForm">
+    <h1>Editar Accidente</h1>
+
+    <form id="editAccidentForm" class="form-card">
+      <!-- Campo oculto para el ID del accidente -->
+      <input type="hidden" id="accidentId" />
+
       <div class="form-group">
-        <label for="licensePlate">Patente:</label>
-        <input type="text" id="licensePlate" name="licensePlate" disabled />
+        <label for="location">Ubicación del accidente</label>
+        <input type="text" id="location" class="form-control" required />
       </div>
 
       <div class="form-group">
-        <label for="date">Fecha:</label>
-        <input type="date" id="date" name="date" />
+        <label for="description">Descripción</label>
+        <textarea id="description" class="form-control" rows="3" required></textarea>
       </div>
 
       <div class="form-group">
-        <label for="time">Hora:</label>
-        <input type="time" id="time" name="time" />
-      </div>
-
-      <div class="form-group">
-        <label for="location">Ubicación:</label>
-        <input type="text" id="location" name="location" />
-      </div>
-
-      <div class="form-group">
-        <label for="description">Descripción:</label>
-        <textarea id="description" name="description" rows="3"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="severity">Gravedad:</label>
-        <select id="severity" name="severity">
+        <label for="severity">Severidad</label>
+        <select id="severity" class="form-control" required>
+          <option value="">Seleccione una opción</option>
           <option value="low">Baja</option>
           <option value="medium">Media</option>
           <option value="high">Alta</option>
         </select>
       </div>
 
-      <button type="submit" class="button">💾 Guardar cambios</button>
+      <div class="form-group">
+        <label for="date">Fecha del accidente</label>
+        <input type="date" id="date" class="form-control" required />
+      </div>
+
+      <div class="form-group">
+        <label for="time">Hora del accidente</label>
+        <input type="time" id="time" class="form-control" required />
+      </div>
+
+      <div class="form-group">
+        <button type="submit" id="saveButton" class="button button-primary">Guardar cambios</button>
+      </div>
     </form>
   </div>
 
